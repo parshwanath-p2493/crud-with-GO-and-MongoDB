@@ -1,95 +1,72 @@
-# Go CRUD API with Gin & MongoDB
+# Go CRUD API with Gin and MongoDB
 
-This project is a simple CRUD API built using the **Gin** framework and **MongoDB** as the database. It provides endpoints to **create, read, update, and delete** data.
-
----
+This is a simple CRUD API built using the **Gin** framework and **MongoDB** in **Go**. It allows users to perform Create, Read, Update, and Delete operations on a MongoDB collection.
 
 ## Features
-- RESTful API with **Gin**
-- **MongoDB** for data storage
-- CRUD operations (**Create, Read, Update, Delete**)
-- Well-structured modular codebase
+- **CRUD operations** (Create, Read, Update, Delete)
+- **MongoDB Integration**
+- **Gin Framework**
+- **Swagger Documentation**
 
 ---
 
-## Prerequisites
-Ensure you have the following installed:
-- **Go** (https://go.dev/doc/install)
-- **MongoDB** (https://www.mongodb.com/try/download/community)
+## Installation and Setup
 
----
-
-## Installation & Setup
-### 1. Clone the Repository
+### 1. Install Go Modules
+Ensure that **Go** is installed on your system. Then, initialize the project:
 ```sh
-git clone https://github.com/your-username/go-crud.git
+mkdir go-crud
 cd go-crud
-```
-
-### 2. Initialize Go Module
-```sh
 go mod init go-crud
 ```
 
-### 3. Install Dependencies
+### 2. Install Required Packages
 ```sh
 go get -u github.com/gin-gonic/gin
 go get go.mongodb.org/mongo-driver
+go get -u github.com/swaggo/swag/cmd/swag
+go get -u github.com/swaggo/gin-swagger
+go get -u github.com/swaggo/files
 ```
 
-### 4. Run MongoDB
-Ensure MongoDB is running on `localhost:27017`.
-
-For Linux/macOS:
-```sh
-mongod --dbpath /path/to/mongo/data
-```
-For Windows (using PowerShell):
-```sh
-mongod.exe --dbpath C:\path\to\mongo\data
-```
+### 3. Start MongoDB
+Ensure MongoDB is running locally on **port 27017** or update the connection string accordingly in `database.go`.
 
 ---
 
 ## Project Structure
 ```
 /go-crud
-├── main.go          # Server setup & routes
-├── database.go      # MongoDB connection
-├── handlers.go      # CRUD logic
-├── models.go        # Data model definition
-└── go.mod           # Go module dependencies
+│── docs/                 # Swagger documentation
+│── database.go           # MongoDB connection
+│── handlers.go           # CRUD operations
+│── models.go             # Data model
+│── main.go               # Server setup
+│── go.mod                # Go module dependencies
+│── README.md             # Project documentation
 ```
 
 ---
 
-## CRUD Endpoints
+## Running the API
 
-### **1. Create Data**
-**Endpoint:** `POST /data`
-
-**Request Body:**
-```json
-{
-  "name": "John Doe",
-  "email": "john@example.com"
-}
+### 1. Start the API Server
+```sh
+go run main.go
 ```
-**Response:**
-```json
-{
-  "message": "Data inserted",
-  "data": {
-    "id": "65d4b6...",
-    "name": "John Doe",
-    "email": "john@example.com"
-  }
-}
+The server will start at: `http://localhost:9090`
+
+### 2. Access Swagger Documentation
+Once the server is running, open:
+```
+http://localhost:9090/swagger/index.html
 ```
 
 ---
 
-### **2. Read All Data**
+## API Endpoints
+
+### **1. Get All Data**
 **Endpoint:** `GET /data`
 
 **Response:**
@@ -98,7 +75,7 @@ mongod.exe --dbpath C:\path\to\mongo\data
   "message": "Data retrieved",
   "data": [
     {
-      "id": "65d4b6...",
+      "id": "61a8c3a0c9a4d7eb6c4a4d6d",
       "name": "John Doe",
       "email": "john@example.com"
     }
@@ -106,10 +83,8 @@ mongod.exe --dbpath C:\path\to\mongo\data
 }
 ```
 
----
-
-### **3. Update Data (Fixed URL Param Issue)**
-**Endpoint:** `PUT /data/:id`
+### **2. Add Data**
+**Endpoint:** `POST /data`
 
 **Request Body:**
 ```json
@@ -118,6 +93,30 @@ mongod.exe --dbpath C:\path\to\mongo\data
   "email": "jane@example.com"
 }
 ```
+
+**Response:**
+```json
+{
+  "message": "Data inserted",
+  "data": {
+    "id": "61a8c3a0c9a4d7eb6c4a4d6e",
+    "name": "Jane Doe",
+    "email": "jane@example.com"
+  }
+}
+```
+
+### **3. Update Data**
+**Endpoint:** `PUT /data?id={id}`
+
+**Request Body:**
+```json
+{
+  "name": "Jane Updated",
+  "email": "jane.updated@example.com"
+}
+```
+
 **Response:**
 ```json
 {
@@ -125,10 +124,8 @@ mongod.exe --dbpath C:\path\to\mongo\data
 }
 ```
 
----
-
-### **4. Delete Data (Fixed URL Param Issue)**
-**Endpoint:** `DELETE /data/:id`
+### **4. Delete Data**
+**Endpoint:** `DELETE /data?id={id}`
 
 **Response:**
 ```json
@@ -139,35 +136,41 @@ mongod.exe --dbpath C:\path\to\mongo\data
 
 ---
 
-## Running the Application
+## Swagger Integration
+
+### 1. Generate Swagger Documentation
+Run the following command to generate the Swagger docs:
 ```sh
-go run main.go
+swag init --output docs
 ```
-The server will start at: **`http://localhost:9090`**
+
+### 2. Import Swagger in `main.go`
+```go
+import (
+    "github.com/gin-gonic/gin"
+    "github.com/swaggo/gin-swagger"
+    "github.com/swaggo/files"
+    _ "./docs"
+)
+```
+
+### 3. Add Swagger Route
+```go
+r.GET("/swagger/*any", ginSwagger.WrapHandler(files.Handler))
+```
+
+Now, you can access Swagger UI at:
+```
+http://localhost:9090/swagger/index.html
+```
 
 ---
 
-## Fix for PUT & DELETE Issues
-The original code used `c.Query("id")`, which did not work well for `PUT` and `DELETE` requests. The issue was resolved by extracting the `id` from the URL path using `c.Param("id")`.
-
-Updated `main.go`:
-```go
-r.PUT("/data/:id", UpdateData)
-r.DELETE("/data/:id", DeleteData)
-```
-
-Updated `handlers.go`:
-```go
-id := c.Param("id")
-objectId, err := primitive.ObjectIDFromHex(id)
-if err != nil {
-    c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
-    return
-}
-```
-
-This ensures the correct `id` is extracted and converted properly.
+## Contributing
+Feel free to contribute to this project by submitting issues or pull requests.
 
 ---
 
+## License
+This project is open-source and available under the **MIT License**.
 
