@@ -12,12 +12,12 @@ import (
 
 var DB *mongo.Client
 
-func ConnectDB() {
+func ConnectDB() *mongo.Client {
 	uri := "mongodb://localhost:27017"
 	client, err := mongo.NewClient(options.Client().ApplyURI(uri))
 	if err != nil {
 		fmt.Println("Error in creating MongoDB client", err)
-		return
+		//return
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -30,8 +30,9 @@ func ConnectDB() {
 	err = client.Ping(context.Background(), readpref.Primary())
 	if err != nil {
 		fmt.Println("Error in pinging MongoDB:", err)
-		return
+		//return
 	}
 	fmt.Println("Connected to MongoDB")
 	DB = client
+	return DB
 }
